@@ -1,0 +1,35 @@
+---
+- name: "Install Zabbix-frontend package"
+  apt:
+    name: zabbix-frontend-php
+    update_cache: yes
+
+- name: "Install PHP lib for MySQL"
+  apt:
+    name: php-mysql
+
+- name: "Enable frontend"
+  shell: cp /etc/apache2/conf-available/zabbix-frontend-php.conf /etc/apache2/conf-enabled/
+
+- name: "Configure frontend (php)"
+  replace:
+    path: /etc/apache2/conf-enabled/zabbix-frontend-php.conf
+    regexp: '# php_value date.timezone.*'
+    replace: 'php_value date.timezone Europe/Moscow'
+
+- name: "Configure frontend (main)"
+  template: src=templates/zabbix.conf.php dest=/etc/zabbix/zabbix.conf.php
+
+- name: "Restart Zabbix server"
+  service:
+    name: zabbix-server
+    state: restarted
+
+- name: "Restart Apache"
+  service:
+    name: apache2
+    state: restarted
+
+- name: "Add autoregistration Action and change password"
+  script: files/runup.sh {{hostvars['localhost']['zabbixHost']}} {{hostvars['localhost']['zabbixWebCurrentPass'] | regex_escape() | quote}} {{hostvars['localhost']['zabbixWebNewPass'] | regex_escape() | quote}}
+  delegate_to: localhost
