@@ -1,0 +1,6 @@
+---
+- name: "Copy iptable rules script"
+  template: src=templates/iptables dest=/etc/network/if-pre-up.d/iptables mode=744
+
+- name: "Enable iptable rules"
+  shell: /etc/network/if-pre-up.d/iptables

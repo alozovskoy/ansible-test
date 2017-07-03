@@ -1,0 +1,13 @@
+---
+- name: "Install Zabbix agent"
+  apt:
+    name: zabbix-agent
+    update_cache: yes
+
+- name: "Copy config"
+  template: src=templates/zabbix_agent.conf dest=/etc/zabbix/zabbix_agentd.conf
+
+- name: "Restart agent"
+  service:
+    name: zabbix-agent
+    state: restarted
