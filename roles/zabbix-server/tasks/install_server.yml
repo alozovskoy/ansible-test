@@ -1,0 +1,20 @@
+---
+- name: "Installing Zabbix server"
+  apt:
+    name: zabbix-server-mysql
+    update_cache: yes
+    install_recommends: no
+
+- name: "Fetching sql"
+  fetch: src={{item}} dest=/tmp/{{hostvars['localhost'].timestamp}}/ flat=yes
+  with_items:
+    - /usr/share/zabbix-server-mysql/data.sql.gz
+    - /usr/share/zabbix-server-mysql/images.sql.gz
+    - /usr/share/zabbix-server-mysql/schema.sql.gz
+
+- name: "Unzipping sql"
+  shell: gunzip /tmp/{{hostvars['localhost'].timestamp}}/*.gz
+  delegate_to: localhost
+
+- name: "Create config"
+  template: src=templates/zabbix_server.conf dest=/etc/zabbix/zabbix_server.conf
