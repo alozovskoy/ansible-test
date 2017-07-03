@@ -1,0 +1,65 @@
+---
+- hosts: all
+- hosts: localhost
+  tasks:
+  - name: "Get MySQL root password"
+    set_fact: mysqlRootPass={{ lookup('pipe','pwgen 24 1') }}
+    when: mysqlRootPass is not defined
+
+  - name: "Get MySQL admin password"
+    set_fact: mysqlAdminPass={{ lookup('pipe','pwgen 24 1') }}
+    when: mysqlAdminPass is not defined
+
+  - name: "Get Zabbix DB user password"
+    set_fact: zabbixPass={{ lookup('pipe','pwgen 24 1') }}
+    when: zabbixPass is not defined
+
+  - name: "Get Zabbix webinterface current password"
+    set_fact: zabbixWebCurrentPass="zabbix"
+    when: zabbixWebCurrentPass is not defined
+
+  - name: "Get Zabbix webinterface new password"
+    set_fact: zabbixWebNewPass={{ lookup('pipe','pwgen 24 1') }}
+    when: zabbixWebNewPass is not defined
+
+  - name: "Get Zabbix Host"
+    set_fact: zabbixHost={{hostvars[groups['zabbix-server'][0]].ansible_default_ipv4.address}}
+    when: zabbixHost is not defined
+
+  - name: "Get MySQL Host"
+    set_fact: mysqlHost={{hostvars[groups['mysql-server'][0]].ansible_default_ipv4.address}}
+    when: mysqlHost is not defined
+
+  - name: "Get timestamp"
+    set_fact: timestamp={{ lookup('pipe', 'date +%s') }}
+
+
+- hosts: zabbix-server
+  gather_facts: no
+  roles:
+    - zabbix-server
+
+
+- hosts: mysql-server
+  gather_facts: no
+  roles:
+    - mysql-server
+
+
+- hosts: zabbix-server
+  gather_facts: no
+  roles:
+    - zabbix-frontend
+
+
+- hosts: zabbix-client
+  gather_facts: no
+  roles:
+    - zabbix-client
+
+
+- hosts: localhost
+  tasks:
+  - debug: msg="MySQL root password{{':'}} {{mysqlRootPass}} ; admin password{{':'}} {{mysqlAdminPass}} ; host{{':'}} {{mysqlHost}}"
+  - debug: msg="Zabbix DB password{{':'}} {{zabbixPass}} ; web password{{':'}} {{zabbixWebNewPass}} ; URL{{':'}} http{{':'}}//{{zabbixHost}}/zabbix "
+  - debug: msg="Timestamp (for tmp dirs){{':'}} {{timestamp}}"
