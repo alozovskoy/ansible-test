@@ -1,0 +1,21 @@
+---
+- name: "Install MySQL"
+  apt:
+    name: mysql-server
+    update_cache: yes
+
+- name: "Run MySQL server"
+  service:
+    name: mysql
+    state: started
+
+- name: "Secure MySQL installation"
+  script: files/mysql_secure.sh {{hostvars['localhost']['mysqlRootPass'] | regex_escape() | quote}} {{hostvars['localhost']['mysqlAdminPass'] | regex_escape() | quote}}
+
+- name: "Enable remote access"
+  copy: src=files/my.cnf dest=/etc/mysql/mariadb.conf.d/99-zabbix.cnf
+
+- name: "Restart MySQL server"
+  service:
+    name: mysql
+    state: restarted

@@ -1,0 +1,12 @@
+---
+- name: "Create Zabbix user and DB"
+  script: files/create_zabbixdb.sh {{hostvars['localhost']['mysqlRootPass'] | regex_escape() | quote }} {{hostvars['localhost']['zabbixPass'] | regex_escape() | quote }} {{hostvars['localhost']['zabbixHost']}}
+
+- name: "Make tmp dir"
+  file: path=/tmp/{{hostvars['localhost'].timestamp}}/ state=directory
+
+- name: "Copy ZabbixDB tables creation scripts"
+  copy: src=/tmp/{{hostvars['localhost'].timestamp}}/ dest=/tmp/{{hostvars['localhost'].timestamp}}/
+
+- name: "Fill ZabbixDB"
+  script: files/fill_zabbixdb.sh {{hostvars['localhost']['zabbixPass'] | regex_escape() }} {{hostvars['localhost'].timestamp}}
